@@ -1,0 +1,22 @@
+{{extend 'layout.html'}}
+<div class="span12">
+	{{=form}}
+	<hr/>
+	{{for event in events:}}
+		{{is_owner = auth.user_id == event.owner_event}}
+		<div class="row">
+			<div class="span4 offset1">{{=event.name}}</div>
+			<div class="span2">
+				<a href="{{=URL('default','event',args=[event.slug])}}" class="btn btn-primary">{{=T('Edit') if is_owner else T('See')}}</a>
+			</div>
+			<div class="span2">
+				<a href="{{=URL('default','manager',vars=dict(id_event=event.id,operation='copy'),hmac_key=key)}}" class="btn btn-inverse">{{=T('Copy')}}</a>
+			</div>
+			<div class="span2">
+				{{if is_owner:}}
+					<a href="{{=URL('default','manager',vars=dict(id_event=event.id,operation='delete'),hmac_key=key)}}" class="btn btn-danger">{{=T('Delete')}}</a>
+				{{pass}}
+			</div>
+		</div>
+	{{pass}}
+</div>

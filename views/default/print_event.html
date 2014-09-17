@@ -1,0 +1,33 @@
+{{extend 'layout.html'}}
+{{block masthead}}
+{{end}}
+{{block navbar}}
+{{end}}
+<div class="span3" id="list" style="margin:0;padding:0"></div>
+<div class="span9" style="margin:0;padding:0"><img id="image" /></div>
+{{block footer}}
+{{end}}
+<script type="text/javascript">
+list_element = function(name, color) {
+	return '<ul class="inline"><li><div style="width: 12px; height: 12px; background: '+color+';"></div></li><li>'+name+'</li></ul>';
+	//return '<div style="background: '+color+'">'+name+'</div>';
+}
+
+jQuery(document).ready(function($){
+	var event_data = window.opener.event_data;
+	var html_list = '';
+	for(var k_cat in event_data.list.category) {
+		var c = event_data.list.category[k_cat];
+		html_list += list_element(c.name, c.color);
+		for(var k_ele in c.elements) {
+			var e = c.elements[k_ele];
+			html_list += list_element(e.name, e.color);
+		}
+	}
+	html_list += '';
+	document.getElementById('list').innerHTML = html_list;
+	document.getElementById('image').src = window.opener.image;
+});
+</script>
+</body>
+</html>

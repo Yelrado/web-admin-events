@@ -1,0 +1,158 @@
+{{extend 'layout.html'}}
+<script type="text/javascript">
+	var url_event_data = "{{=URL('default','event_data')}}";
+	var url_shared_event_data = "{{=URL('default','shared_event_data')}}";
+	var url_rename_event = "{{=URL('default','rename_event')}}";
+	var url_print_event = "{{=URL('default', 'print_event', args=[event.id])}}";
+	var url_this_event = "{{=URL('default', 'event', args=[event.slug])}}";
+	var url_sketch = "{{=URL('static','stage.pde')}}";
+	var id_event = {{=event.id}};
+	var msg_nothing_select = "{{=T('Nothing selected')}}";
+	var msg_enter_text = "{{=T('Enter the text')}}";
+	var msg_conection_error = "{{=T('Check your conection and try again')}}";
+	var msg_confirm_delete = "{{=T('Do you really want to delete this')}}";
+	var msg_category_unlinked = "{{=T('Unlinked')}}";
+	var msg_saved = "{{=T('Saved')}}";
+	var msg_results = "{{=T('Results')}}";
+	var msg_fill_form = "{{=T('Please, fill the form')}}";
+	var msg_exit_warning = "{{=T('All unsaved data will lost, exit anyway?')}}";
+	var str_make_link = "{{=T('Make a link with the stage')}}";
+	var str_delete_category = "{{=T('Delete this category')}}";
+	var str_delete_element = "{{=T('Delete this element')}}";
+	var str_assistance = "{{=T('Mark as attended')}}";
+	var str_select = "{{=T('--Select--')}}";
+	var is_owner = {{='true' if is_owner else 'false'}};
+	var url_chair = "{{=URL('static', 'images/chair.png')}}";
+	var url_table = "{{=URL('static', 'images/table.png')}}";
+</script>
+{{block masthead}}
+{{end}}
+<div class="span12">
+	<ul class="nav nav-pills">
+		<li class="active"><a href="{{=URL('default', 'event', args=[event.id])}}" id="eventName">{{=event.name}}</a></li>
+		<li class="disabled"><a href="#">{{=T('Your are the owner') if is_owner else T('Only read')}}</a></li>
+		<li class="pull-right"><a href="#" onclick="aee.print()">{{=T('Print')}}</a></li>
+		{{if is_owner:}}
+		 <li class="pull-right"><a href="#" onclick="aee.rename_event(prompt('{{=T('New name')}}'))">{{=T('Rename')}}</a></li>
+		 <li class="pull-right"><a href="#" onclick="aee.save()">{{=T('Save')}}</a></li>
+		{{pass}}
+	</ul>
+	<div class="row">
+		{{# Lista}}
+		<div class="span3" id="resizable">
+			{{if is_owner:}}
+			{{# Crear categoría}}
+			<div class="accordion" id="accordionCreateFather">
+				<div class="accordion-group">
+					<div class="accordion-heading">
+						<a class="accordion-toggle" data-toggle="collapse" data-parent="#accordionCreateFather" href="#collapseCategory">{{=T('Create new category')}}</a>
+					</div>
+					<div id="collapseCategory" class="accordion-body collapse">
+						<div class="accordion-inner">
+							{{# Contenido de crear categoría}}
+							<input class="input-block-level" id="categoryNewName" type="text" placeholder="{{=T('Name of new category')}}" />
+							{{# Really simple color picker}}
+							<ul class="inline">
+								<li><label for="categoryColor">{{=T('Color: ')}}</label></li>
+								<li><input id="categoryColor" type="text" name="categoryColor" value="#CAB6C7" /></li>
+							</ul>
+							<div class="form-actions"><button type="submit" class="btn btn-primary btn-block" onclick="aee.create_category()">{{=T('Add Category')}}</button></div>
+						</div>
+					</div>
+				</div>
+				<div class="accordion-group">
+					<div class="accordion-heading">
+						<a class="accordion-toggle" data-toggle="collapse" data-parent="#accordionCreateFather" href="#collapseElement">{{=T('Create new element')}}</a>
+					</div>
+					<div id="collapseElement" class="accordion-body collapse">
+						<div class="accordion-inner">
+							{{# Contenido de crear elemento}}
+							<input class="input-block-level" id="elementNewName" type="text" placeholder="{{=T('Name of new element')}}" />
+							<label>{{=T('Category')}}</label>
+							<div id="categories"></div>
+							{{# Really simple color picker}}
+							<ul class="inline">
+								<li><label for="elementColor">{{=T('Color: ')}}</label></li>
+								<li><input id="elementColor" type="text" name="elementColor" value="#F2C532" /></li>
+							</ul>
+							<label class="checkbox">
+								<label class="radio"><input type="radio" name="optionsRadios" id="elementIndividual" value="individual" /> {{=T('Individual')}}</label>
+								<label class="radio"><input type="radio" name="optionsRadios" id="elementGroup" value="group" /> {{=T('Group')}}</label>
+							</label>
+							<div class="form-actions"><button type="submit" class="btn btn-primary btn-block" onclick="aee.create_list_element()">{{=T('Add Element')}}</button></div>
+						</div>
+					</div>
+				</div>
+			</div>
+			{{pass}}
+			<div class="input-prepend">
+				<span class="add-on"><i class="icon-search"></i></span>
+				<input class="input-block-level" id="prependedInput" type="text" placeholder="{{=T('Search')}}" onchange="aee.search()" />
+			</div>
+			<div class="accordion" id="listTree">{{# Aqui iran los nuevos elementos}}</div>
+		</div>
+		<div class="span9">
+			{{# Barra de herramientas}}
+			{{if is_owner:}}
+			<div class="row">
+				<div class="span9">
+					<div class="btn-toolbar">
+						<div class="btn-group">
+							<button class="btn btn-mini btn-action" type="button" title="{{=T('Move')}}" onclick="aee.activate_action(this,actions.MOVE)"> <i class="icon-move"></i> </button>
+							<button class="btn btn-mini btn-action" type="button" title="{{=T('Line')}}" onclick="aee.activate_action(this,actions.LINE)"> <i class="icon-minus"></i> </button>
+							<button class="btn btn-mini btn-action" type="button" title="{{=T('Rectangle')}}" onclick="aee.activate_action(this,actions.RECT)"> <i class="icon-stop"></i> </button>
+							<button class="btn btn-mini btn-action" type="button" title="{{=T('Circle')}}" onclick="aee.activate_action(this,actions.CIRC)"> <i class="icon-plus-sign"></i> </button>
+							<button class="btn btn-mini btn-action" type="button" title="{{=T('Text')}}" onclick="aee.activate_action(this,actions.TEXT)"> <i class="icon-font"></i> </button>
+							<button class="btn btn-mini btn-action" type="button" title="{{=T('Table')}}" onclick="aee.activate_action(this,actions.TABLE)"><i class="icon-plus"></i> {{=T('Table')}}</button>
+							<button class="btn btn-mini btn-action" type="button" title="{{=T('Chair')}}" onclick="aee.activate_action(this,actions.CHAIR)"><i class="icon-plus"></i> {{=T('Chair')}}</button>
+							<button class="btn btn-mini btn-action" type="button" title="{{=T('Lock')}}" onclick="aee.activate_action(this,actions.LOCKED)" id="btnLocked"> <i class="icon-lock"></i> </button>
+							<input class="input-mini btn-action" id="stageWidth" type="text" style="height:10px;line-height:4px;" placeholder="{{=T('width')}}" onchange="aee.update_size_stage()" />
+							<input class="input-mini btn-action" id="stageHeight" type="text" style="height:10px;line-height:4px;" placeholder="{{=T('height')}}" onchange="aee.update_size_stage()" />
+							<button class="btn btn-mini btn-action" type="button" title="{{=T('Delete')}}" onclick="aee.activate_action(this,actions.DELETE)"> <i class="icon-trash"></i> </button>
+						</div>
+					</div>
+				</div>
+			</div>
+			{{pass}}
+			<div class="row">
+				{{# Canvas}}
+				<div class="span9" style="overflow: scroll; height: 75vh;">
+					<canvas id="sketch"></canvas>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+{{block add_js}}
+<script src="{{=URL('static','js/jquery-ui-1.10.4.custom.min.js')}}"></script>
+<script src="{{=URL('static','js/jquery.colorPicker.min.js')}}"></script>
+<script src="{{=URL('static','js/processing.min.js')}}"></script>
+<script src="{{=URL('static','js/aee.js')}}"></script>
+<script type="text/javascript">
+	jQuery(document).ready(function($) {
+        $('#elementColor').colorPicker({
+			colors: ["F2C532", "F97EB2", "41CBC1", "F44D1F", "030303", "3E464F",
+			         "00A0B0", "6A4A3C", "CC333F", "EB6841", "EDC951", "606770",
+			         "AAFF00", "FFAA00", "FF00AA", "AA00FF", "00AAFF", "768491",
+			         "CCF390", "E0E05A", "F7C41F", "FC930A", "FF003D", "97A6B8",
+			         "FF003C", "FF8A00", "FABE28", "88C100", "00C176", "A7BDD1"
+			        ]
+		});
+        $('#categoryColor').colorPicker({
+			colors: ["CAB6C7", "82829E", "427590", "7AB4C8", "C0E8B6", "3E464F",
+			         "000000", "2D2980", "7736B6", "650544", "15EEE3", "606770",
+			         "E8F7F2", "A0B5CA", "8C0100", "D2504E", "29191C", "768491",
+			         "EFD0BE", "004264", "025780", "715047", "AC7647", "97A6B8",
+			         "AE4001", "C58521", "FBDEB6", "7C4064", "3E0323", "A7BDD1"
+			        ]
+		});
+        $('#resizable').resizable({
+			handles : 'e'
+		});
+		aee.init();
+	});
+</script>
+{{end}}
+
+{{block footer}}
+{{end}}
